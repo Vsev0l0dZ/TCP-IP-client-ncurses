@@ -13,12 +13,17 @@
 #include <unistd.h> // read(), write(), close()
 #define MAX 8
 #define PORT 8888
+#define MIN_INT -1000
+#define MAX_INT 1000
+#define MIN_DOUBLE -1000.0
+#define MAX_DOUBLE 1000.0
+
 //#define SA struct sockaddr
 //END from tcp-server-client-implementation-in-c/
 //*********************************************************************************//
 
-#include <locale.h>//русский язык не работает все равно
-//#include <clocale>//русский язык не работает все равно
+#include <locale.h>
+//#include <clocale>
 
 void funcChat(int sockfd) {
     char buff[MAX];
@@ -36,7 +41,7 @@ void funcChat(int sockfd) {
     refresh();
 
     int y2 = y1;
-    int x2 = 40;
+    int x2 = 36;
 
     WINDOW* winRight = newwin(nlines, ncols, y2, x2);
     box(winRight, 0, 0);// рамка winRight
@@ -45,17 +50,44 @@ void funcChat(int sockfd) {
 
     for (;;) {
         memset(&buff, 0, sizeof(buff));
-        mvprintw(3, 0,"Enter the Argument Number: ");
+        mvprintw(4, 0,"Enter the Argument No. (from 1 to 6): ");
         refresh();
-        read(sockfd, buff, sizeof(buff));// читаем из сокета в buff
+        recv(sockfd, buff, sizeof(buff), 0);// читаем из сокета в buff
         int argN = atoi(buff);// порядковый номер аргумента
         refresh();
-
         memset(&buff, 0, sizeof(buff));
-        mvprintw(4, 0,"Enter the Argument: ");
+
+
+        while((argN < 1) || (argN > 6)){
+            memset(&buff, 0, sizeof(buff));
+            refresh();
+            mvprintw(4, 0,"Enter the correct Argument No.!:        ");// добавил пробелов to clear prev. words
+            refresh();
+            recv(sockfd, buff, sizeof(buff), 0);
+            argN = atoi(buff);// порядковый номер аргумента
+            refresh();
+        }
+
+        mvprintw(4, 0,"Enter the Value of the Argument No.%d:             ", argN);// добавил пробелов to clear prev. words
         refresh();
-        read(sockfd, buff, sizeof(buff));// читаем из сокета в buff
-        refresh();
+        recv(sockfd, buff, sizeof(buff), 0);// читаем из сокета в buff
+
+
+//        while(strlen(buff) > MAX){
+//            memset(&buff, 0, sizeof(buff));
+//            mvprintw(4, 0,"Enter the Correct Argument!");
+//        }
+
+//        while((atoi(buff) < MIN_INT) || (atoi(buff) > MAX_INT)){
+//            memset(&buff, 0, sizeof(buff));
+//            mvprintw(4, 0,"Enter the Correct Argument!");
+//        }
+
+//        while((atof(buff) < MIN_DOUBLE) || (atof(buff) > MAX_DOUBLE)){
+//            memset(&buff, 0, sizeof(buff));
+//            mvprintw(4, 0,"Enter the Correct Argument!");
+//        }
+
 
         int qArg = 6;// количество аргументов в таблице
         int xWin = 1;// координаты строки в окне
@@ -64,34 +96,63 @@ void funcChat(int sockfd) {
 
         switch (argN){
         case 1: {
-            mvwprintw(winLeft, argN, xWin, "arg %d (int): %8d", argN, atoi(buff));//int
+            while((atoi(buff) < MIN_INT) || (atoi(buff) > MAX_INT)){
+                memset(&buff, 0, sizeof(buff));
+                mvprintw(4, 0,"Enter the Correct Argument!");// покрасить в красный жЫрный!
+            }
+            mvwprintw(winLeft, argN, xWin, "arg %d (int):    %-8.d", argN, atoi(buff));//int
             wrefresh(winLeft);
             break;
         }
         case 2: {
-            mvwprintw(winLeft, yWin1, xWin, "arg %d (double): %8lf", argN, atof(buff));//double
+            while((atof(buff) < MIN_DOUBLE) || (atof(buff) > MAX_DOUBLE)){
+                memset(&buff, 0, sizeof(buff));
+                mvprintw(4, 0,"Enter the Correct Argument!");
+            }
+            mvwprintw(winLeft, yWin1, xWin, "arg %d (double): %-8lf", argN, atof(buff));//double
             wrefresh(winLeft);
             break;
         }
         case 3: {
+            while(strlen(buff) > MAX){
+                memset(&buff, 0, sizeof(buff));
+                mvprintw(4, 0,"Enter the Correct Argument!");
+            }
             buff[strcspn (buff, "\n")] = 0;// replace '\n' with 0
-            mvwprintw(winLeft, yWin1, xWin, "arg %d (char*): %8s", argN, buff);//char*
+            mvwprintw(winLeft, yWin1, xWin, "arg %d (char*):  %-8s", argN, buff);//char*
             wrefresh(winLeft);
             break;
         }
         case 4: {
-            mvwprintw(winRight, yWin2, xWin, "arg %d (int): %8d", argN, atoi(buff));//int
+            while((atof(buff) < MIN_DOUBLE) || (atof(buff) > MAX_DOUBLE)){
+                memset(&buff, 0, sizeof(buff));
+                mvprintw(4, 0,"Enter the Correct Argument!");
+            }
+            while((atoi(buff) < MIN_INT) || (atoi(buff) > MAX_INT)){
+                memset(&buff, 0, sizeof(buff));
+                mvprintw(4, 0,"Enter the Correct Argument!");// покрасить в красный жЫрный!
+            }
+
+            mvwprintw(winRight, yWin2, xWin, "arg %d (int):    %-8d", argN, atoi(buff));//int
             wrefresh(winRight);
             break;
         }
         case 5: {
-            mvwprintw(winRight, yWin2, xWin, "arg %d (double): %8lf", argN, atof(buff));//double
+            while(strlen(buff) > MAX){
+                memset(&buff, 0, sizeof(buff));
+                mvprintw(4, 0,"Enter the Correct Argument!");
+            }
+            mvwprintw(winRight, yWin2, xWin, "arg %d (double): %-8lf", argN, atof(buff));//double
             wrefresh(winRight);
             break;
         }
         case 6: {
+            while(strlen(buff) > MAX){
+                memset(&buff, 0, sizeof(buff));
+                mvprintw(4, 0,"Enter the Correct Argument!");// покрасить в красный жЫрный!
+            }
             buff[strcspn (buff, "\n")] = 0;
-            mvwprintw(winRight, yWin2, xWin, "arg %d (char*): %8s", argN, buff);//char*
+            mvwprintw(winRight, yWin2, xWin, "arg %d (char*):  %-8s", argN, buff);//char*
             wrefresh(winRight);
             break;
         }
